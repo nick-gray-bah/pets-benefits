@@ -1,23 +1,38 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { UserController } from './user/user.controller';
 import { AuthController } from './auth/auth.controller';
 import { PetsModule } from './pet/pet.module';
+import { AppController } from './app.controller';
+import { UserModule } from './user/user.module';
 import { APP_GUARD } from '@nestjs/core';
-import { AuthGuard } from './auth/guards/auth.guard';
+import { JwtAuthGuard } from './auth/guards/jwt.guard';
 import { RoleGuard } from './auth/guards/role.guard';
+import { PubSub } from 'graphql-subscriptions';
+import { PetsController } from './pet/pet.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      subscriptions: {
+        'graphql-ws': true,
+      },
+      autoSchemaFile: true,
+      sortSchema: true,
+      context: ({ req }) => ({ req }),
+      definitions: {
+        outputAs: 'class',
+      },
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -38,21 +53,25 @@ import { RoleGuard } from './auth/guards/role.guard';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService,
-    { // global auth guard requires authorization header, unless route is marked w/ @Public() decorator
+  providers: [
+    {
       provide: APP_GUARD,
-      useClass: AuthGuard
+      useClass: JwtAuthGuard,
     },
-    { // global role guard requires matching roles, unless route does not include @Roles([<Role[]>])
+    {
       provide: APP_GUARD,
-      useClass: RoleGuard
-    }
+      useClass: RoleGuard,
+    },
+    {
+      provide: 'PUB_SUB',
+      useValue: new PubSub(),
+    },
   ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(LoggerMiddleware)
-      .forRoutes(UserController, AuthController);
+      .forRoutes(UserController, AuthController, PetsController);
   }
 }

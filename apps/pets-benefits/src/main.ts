@@ -1,15 +1,23 @@
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
+import { DataSource } from 'typeorm';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const globalPrefix = 'api';
-  app.setGlobalPrefix(process.env.API_VERSION);
+  const apiVersion = process.env.API_VERSION;
   const port = process.env.PORT || 3000;
-  await app.listen(port);
+  const typeorm = app.get(DataSource)
+
+  typeorm.runMigrations()
+
+  app.setGlobalPrefix(apiVersion);
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+  app.listen(port);
+
   Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
+    `🚀 Application is running on: http://localhost:${port}/${apiVersion}`
   );
 }
 

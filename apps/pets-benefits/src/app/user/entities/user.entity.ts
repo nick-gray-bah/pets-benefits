@@ -9,38 +9,53 @@ import {
   OneToMany,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { PetEntity } from '../../pet/entities/pet.entity';
-import { Role } from '../../auth/interfaces/interfaces';
+import { Pet } from '../../pet/entities/pet.entity';
+import { Role } from './role.enum';
+import { Field, HideField, ID, ObjectType } from '@nestjs/graphql';
 
+@ObjectType()
 @Entity('users')
-export class UserEntity {
+export class User {
+  @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Field()
   @Column()
   firstName: string;
 
+  @Field()
   @Column()
   lastName: string;
 
+  @Field()
   @Column({ unique: true })
   email: string;
 
+  @HideField()
   @Column()
   password: string;
 
-  @Column('text', { array: true, nullable: true })
-  roles: Role[];
+  @Field()
+  @Column({ default: true })
+  isActive: boolean;
 
-  @OneToMany(() => PetEntity, (pet) => pet.owner)
-  pets: PetEntity[];
+  @Field(() => [Role])
+  @Column({ type: 'enum', enum: Role, array: true, default: [Role.OWNER] })
+  roles?: Role[];
 
+  @Field(() => [Pet])
+  @OneToMany(() => Pet, (pet) => pet.owner)
+  pets?: Pet[];
+
+  @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
 
+  @Field(() => Date)
   @UpdateDateColumn()
   updatedAt: Date;
-  
+
   @BeforeUpdate()
   @BeforeInsert()
   async hashPassword() {

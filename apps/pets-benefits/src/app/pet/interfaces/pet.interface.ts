@@ -1,6 +1,6 @@
 import { IUser } from '../../user/interface/user.interface';
 
-export interface Pet {
+export interface IPet {
   id?: string;
   name: string;
   owner: IUser;

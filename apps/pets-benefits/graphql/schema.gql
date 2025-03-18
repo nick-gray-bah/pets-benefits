@@ -1,0 +1,73 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AuthResponseDTO {
+  accessToken: String!
+}
+
+input CreateUserDTO {
+  email: String!
+  firstName: String!
+  isActive: Boolean
+  lastName: String!
+  password: String!
+  roles: [Role!]!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  createUser(user: CreateUserDTO!): User!
+  login(email: String!, password: String!): AuthResponseDTO!
+  updateUser(user: UpdateUserDTO!): User!
+}
+
+type Pet {
+  createdAt: DateTime!
+  id: ID!
+  name: String!
+  owner: User!
+  updatedAt: DateTime!
+}
+
+type Query {
+  hello: String!
+  user(id: String!): User!
+  users: [User!]!
+}
+
+"""User roles"""
+enum Role {
+  ADMIN
+  OWNER
+}
+
+type Subscription {
+  userAdded: User!
+  userUpdated: User!
+}
+
+input UpdateUserDTO {
+  email: String
+  firstName: String
+  isActive: Boolean
+  lastName: String
+  password: String
+  roles: [Role!]
+}
+
+type User {
+  createdAt: DateTime!
+  email: String!
+  firstName: String!
+  id: ID!
+  isActive: Boolean!
+  lastName: String!
+  pets: [Pet!]!
+  roles: [Role!]!
+  updatedAt: DateTime!
+}

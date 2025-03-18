@@ -2,12 +2,22 @@ import { Module } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from './entities/user.entity';
+import { User } from './entities/user.entity';
+import { UserResolver } from './user.resolver';
+import { PetsModule } from '../pet/pet.module';
+import { PubSub } from 'graphql-subscriptions';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity])],
-  exports: [TypeOrmModule],
+  imports: [PetsModule, TypeOrmModule.forFeature([User])],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [
+    UserResolver,
+    UserService,
+    {
+      provide: 'PUB_SUB',
+      useValue: new PubSub(),
+    },
+  ],
+  exports: [TypeOrmModule, UserService],
 })
 export class UserModule {}

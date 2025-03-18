@@ -1,16 +1,12 @@
 import { Request } from 'express';
+import { Role } from '../../user/entities/role.enum';
 
 export interface IPayload {
-  id: string;
+  sub: string;
   email: string;
   roles: Role[];
 }
 
 export interface AuthedRequest extends Request {
   user: IPayload;
-}
-
-export enum Role {
-  admin = 'admin',
-  owner = 'owner',
 }

@@ -6,22 +6,29 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserEntity } from '../../user/entities/user.entity';
+import { User } from '../../user/entities/user.entity';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 
+@ObjectType()
 @Entity('pets')
-export class PetEntity {
+export class Pet {
+  @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Field()
   @Column()
   name: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.pets, { onDelete: 'CASCADE' })
-  owner: UserEntity;
+  @Field(() => User)
+  @ManyToOne(() => User, (user) => user.pets, { onDelete: 'CASCADE' })
+  owner: User;
 
+  @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
 
+  @Field(() => Date)
   @UpdateDateColumn()
   updatedAt: Date;
 }

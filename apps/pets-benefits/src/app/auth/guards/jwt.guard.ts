@@ -7,16 +7,36 @@ import { AuthGuard } from '@nestjs/passport';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private reflector: Reflector) {
+  constructor(private reflector: Reflector, private jwtService: JwtService) {
     super();
   }
 
   getRequest(context: ExecutionContext) {
+    
     if (context.getType() === 'http') {
       return context.switchToHttp().getRequest();
+    }
+
+    if (context.getType() === 'ws') {
+      const ctx = GqlExecutionContext.create(context);
+      const connectionParams = ctx.getContext().connectionParams;
+
+      if (connectionParams?.Authorization) {
+        const token = connectionParams.Authorization.replace('Bearer ', '');
+        try {
+          const user = this.jwtService.verify(token);
+          ctx.getContext().user = user;
+          return { user };
+        } catch (err) {
+          console.log(err);
+          throw new UnauthorizedException('Invalid or expired token');
+        }
+      }
+      throw new UnauthorizedException('Missing authentication token');
     }
 
     const ctx = GqlExecutionContext.create(context);
@@ -29,6 +49,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       context.getClass(),
     ]);
 
+
     if (isPublic) {
       return true;
     }
@@ -38,7 +59,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
   handleRequest(err, user) {
     if (err || !user) {
-      throw err || new UnauthorizedException();
+      throw err || new UnauthorizedException('Unauthorized');
     }
     return user;
   }

@@ -8,10 +8,11 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { IPet } from '../interfaces/pet.interface';
 
 @ObjectType()
 @Entity('pets')
-export class Pet {
+export class Pet implements IPet {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -19,6 +20,14 @@ export class Pet {
   @Field()
   @Column()
   name: string;
+
+  @Field()
+  @Column()
+  breed: string;
+
+  @Field(() => Date)
+  @Column()
+  dob: Date;
 
   @Field(() => User)
   @ManyToOne(() => User, (user) => user.pets, { onDelete: 'CASCADE' })

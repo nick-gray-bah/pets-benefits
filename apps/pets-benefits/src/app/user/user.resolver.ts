@@ -12,7 +12,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Pet } from '../pet/entities/pet.entity';
-import { CreateUserDTO, UpdateUserDTO } from './dto/user.dto';
+import { CreateUserDTO, UpdateUserDTO } from './dto/user.input';
 import { UserService } from './user.service';
 import { Public } from '../auth/decorators/public.decorator';
 import { Inject } from '@nestjs/common';
@@ -25,6 +25,7 @@ export class UserResolver {
     private userService: UserService
   ) {}
 
+  @Public()
   @Query(() => [User])
   users() {
     return this.userService.getAllUsers();
@@ -51,18 +52,25 @@ export class UserResolver {
     return newUser;
   }
 
+  @Mutation(() => [User])
+  async removeAllUsers() {
+    return await this.userService.removeAll()
+  }
+
   @Mutation(() => User)
   async updateUser(@Args('user') user: UpdateUserDTO) {
     const updatedUser = await this.userService.updateUser(user);
-    this.pubSub.publish('userAdded', { userUpdated: updatedUser });
-    return user;
+    this.pubSub.publish('userUpdated', { userUpdated: updatedUser });
+    return updatedUser;
   }
 
+  @Public()
   @Subscription(() => User)
   userAdded() {
     return this.pubSub.asyncIterableIterator('userAdded');
   }
 
+  @Public()
   @Subscription(() => User)
   userUpdated() {
     return this.pubSub.asyncIterableIterator('userUpdated');

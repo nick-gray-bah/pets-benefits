@@ -3,7 +3,7 @@ import {
   InternalServerErrorException,
   NotAcceptableException,
 } from '@nestjs/common';
-import { CreateUserDTO, UpdateUserDTO } from './dto/user.dto';
+import { CreateUserDTO, UpdateUserDTO } from './dto/user.input';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -64,7 +64,8 @@ export class UserService {
   }
 
   async removeAll() {
-    const entities = await this.getAllUsers();
-    return await this.usersRepository.remove(entities);
+    const users = await this.getAllUsers();
+    await this.usersRepository.remove(users);
+    return users
   }
 }

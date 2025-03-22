@@ -1,23 +1,26 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { IsEmail, IsJWT, IsNotEmpty } from 'class-validator';
+import { ObjectType, Field, InputType } from '@nestjs/graphql';
+import { User } from '../../user/entities/user.entity';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
-@InputType()
-export class AuthRequestDTO {
-
-  @IsEmail()
-  @Field()
-  email: string;
-
-  @IsNotEmpty()
-  @Field()
-  password: string;
+@ObjectType()
+export class LoginResponse {
+  @Field(() => User)
+  user: User;
 }
 
 @ObjectType()
-export class AuthResponseDTO {
-  
-  @IsNotEmpty()
-  @IsJWT()
+export class RefreshResponse {
+  @Field(() => User)
+  user: User;
+}
+
+@InputType()
+export class LoginRequest {
   @Field()
-  accessToken: string;
+  @IsEmail()
+  email: string;
+  
+  @Field()
+  @IsNotEmpty()
+  password: string;
 }

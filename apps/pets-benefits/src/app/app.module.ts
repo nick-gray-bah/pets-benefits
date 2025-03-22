@@ -6,15 +6,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { UserController } from './user/user.controller';
-import { AuthController } from './auth/auth.controller';
-import { PetsModule } from './pet/pet.module';
+import { PetModule } from './pet/pet.module';
 import { AppController } from './app.controller';
 import { UserModule } from './user/user.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt.guard';
 import { RoleGuard } from './auth/guards/role.guard';
-import { PubSub } from 'graphql-subscriptions';
-import { PetsController } from './pet/pet.controller';
 
 @Module({
   imports: [
@@ -22,17 +19,25 @@ import { PetsController } from './pet/pet.controller';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    GraphQLModule.forRoot<ApolloDriverConfig>({
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
-      subscriptions: {
-        'graphql-ws': true,
-      },
-      autoSchemaFile: true,
-      sortSchema: true,
-      context: ({ req }) => ({ req }),
-      definitions: {
-        outputAs: 'class',
-      },
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        autoSchemaFile: true,
+        sortSchema: true,
+        playground: configService.get('NODE_ENV') !== 'production',
+        context: ({ req, res }) => ({ req, res }),
+        cors: {
+          origin: configService.get('CORS_ORIGIN'),
+          credentials: true,
+        },
+        installSubscriptionHandlers: true,
+        subscriptions: {
+          'graphql-ws': true,
+          'subscriptions-transport-ws': true,
+        },
+      }),
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -49,7 +54,7 @@ import { PetsController } from './pet/pet.controller';
       }),
     }),
     UserModule,
-    PetsModule,
+    PetModule,
     AuthModule,
   ],
   controllers: [AppController],
@@ -62,16 +67,10 @@ import { PetsController } from './pet/pet.controller';
       provide: APP_GUARD,
       useClass: RoleGuard,
     },
-    {
-      provide: 'PUB_SUB',
-      useValue: new PubSub(),
-    },
   ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes(UserController, AuthController, PetsController);
+    consumer.apply(LoggerMiddleware).forRoutes(UserController);
   }
 }

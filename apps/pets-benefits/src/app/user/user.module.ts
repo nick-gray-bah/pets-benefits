@@ -1,14 +1,14 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { UserResolver } from './user.resolver';
-import { PetsModule } from '../pet/pet.module';
+import { PetModule } from '../pet/pet.module';
 import { PubSub } from 'graphql-subscriptions';
 
 @Module({
-  imports: [PetsModule, TypeOrmModule.forFeature([User])],
+  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => PetModule)],
   controllers: [UserController],
   providers: [
     UserResolver,

@@ -12,10 +12,11 @@ import * as bcrypt from 'bcrypt';
 import { Pet } from '../../pet/entities/pet.entity';
 import { Role } from './role.enum';
 import { Field, HideField, ID, ObjectType } from '@nestjs/graphql';
+import { IUser } from '../interface/user.interface';
 
 @ObjectType()
 @Entity('users')
-export class User {
+export class User implements IUser {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -36,17 +37,20 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ nullable: true })
+  refreshToken?: string;
+
   @Field()
   @Column({ default: true })
   isActive: boolean;
 
   @Field(() => [Role])
   @Column({ type: 'enum', enum: Role, array: true, default: [Role.OWNER] })
-  roles?: Role[];
+  roles: Role[];
 
   @Field(() => [Pet])
   @OneToMany(() => Pet, (pet) => pet.owner)
-  pets?: Pet[];
+  pets: Pet[];
 
   @Field(() => Date)
   @CreateDateColumn()

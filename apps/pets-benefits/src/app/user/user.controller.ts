@@ -7,10 +7,9 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
-  ValidationPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDTO, UpdateUserDTO } from './dto/user.dto';
+import { CreateUserDTO, UpdateUserDTO } from './dto/user.input';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/role.decorator';
 import { Role } from './entities/role.enum';

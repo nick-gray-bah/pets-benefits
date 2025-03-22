@@ -1,6 +1,5 @@
 import {
   Injectable,
-  LoggerService,
   NotFoundException,
 } from '@nestjs/common';
 import { Request } from 'express';
@@ -38,7 +37,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: IPayload) {
-    this.logger.warn(payload);
     const user = await this.userService.findUserById(payload.sub);
 
     if (!user) {
